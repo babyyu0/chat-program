@@ -1,0 +1,48 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.ncb
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+
+# Build output
+Debug/
+Release/
+x64/
+x86/
+
+# Compiled object files
+*.obj
+*.o
+
+# Linker output
+*.ilk
+*.pdb
+*.exp
+*.lib
+*.dll
+*.exe
+
+# Precompiled headers
+*.pch
+*.gch
+
+# IntelliSense database
+*.idb
+ipch/
+
+# Log files
+*.log
+*.tlog
+
+# NuGet packages
+packages/
+*.nupkg
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
