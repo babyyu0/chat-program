@@ -1,9 +1,26 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <iostream>
 #include <string>
+#include <thread>
 #include <winsock2.h>
 
 #pragma comment(lib, "ws2_32.lib")
+
+// 수신 전담 함수 : 이 함수가 별도 스레드에서 돌아감
+void ReceiveThread(SOCKET sock) {
+	char recvBuffer[512];
+	while (true) {
+		int bytesReceived = recv(sock, recvBuffer, sizeof(recvBuffer) - 1, 0);
+		if (bytesReceived <= 0) {
+			std::cout << "\n서버와 연결이 끊어졌습니다." << std::endl;
+			break;
+		}
+		recvBuffer[bytesReceived] = '\0';
+
+		std::string recvMsg(recvBuffer);
+		std::cout << "\n[서버] " << recvMsg << std::endl;
+	}
+}
 
 int main()
 {
@@ -41,35 +58,26 @@ int main()
 
 	std::cout << "Client: connected to server!" << std::endl;
 
-	char recvBuffer[512];
-	while (true) {
-		// 1. 키보드로 메시지 입력 받기
-		std::string sendMsg;
-		std::cout << "메시지 입력 (quit 입력 시 종료): ";
-		std::getline(std::cin, sendMsg);
+	// 수신 전담 스레드 시 작 (여기서 두 갈래로 나뉨)
+	std::thread recvThread(ReceiveThread, clientSocket);
 
-		//'quit'을 입력하면 반복 종료
+	// 메인 스레드는 입력 및 전송만 담당
+	while (true) {
+		std::string sendMsg;
+		std::getline(std::cin, sendMsg);
 		if (sendMsg == "quit") {
 			break;
 		}
 
-		// 2. 서버로 보내기 (말하기)
 		send(clientSocket, sendMsg.c_str(), static_cast<int>(sendMsg.size()), 0);
-
-		// 3. 서버가 돌려준 메아리 받기 (듣기)
-		int bytesReceived = recv(clientSocket, recvBuffer, sizeof(recvBuffer) - 1, 0);
-		if (bytesReceived <= 0) {
-			std::cout << "Server disconnected." << std::endl;
-			break;
-		}
-		recvBuffer[bytesReceived] = '\0';
-
-		std::string recvMsg(recvBuffer);
-		std::cout << "서버 응답: " << recvMsg << std::endl;
 	}
 
 	// 4. 정리
 	closesocket(clientSocket);
+
+	// 수신 스레드가 끝날 때까지 기다렸다 정리
+	recvThread.join();
+
 	WSACleanup();
 	return 0;
 }
