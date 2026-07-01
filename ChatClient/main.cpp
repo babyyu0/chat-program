@@ -1,5 +1,6 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <iostream>
+#include <string>
 #include <winsock2.h>
 
 #pragma comment(lib, "ws2_32.lib")
@@ -40,7 +41,32 @@ int main()
 
 	std::cout << "Client: connected to server!" << std::endl;
 
-	system("pause");
+	char recvBuffer[512];
+	while (true) {
+		// 1. 키보드로 메시지 입력 받기
+		std::string sendMsg;
+		std::cout << "메시지 입력 (quit 입력 시 종료): ";
+		std::getline(std::cin, sendMsg);
+
+		//'quit'을 입력하면 반복 종료
+		if (sendMsg == "quit") {
+			break;
+		}
+
+		// 2. 서버로 보내기 (말하기)
+		send(clientSocket, sendMsg.c_str(), static_cast<int>(sendMsg.size()), 0);
+
+		// 3. 서버가 돌려준 메아리 받기 (듣기)
+		int bytesReceived = recv(clientSocket, recvBuffer, sizeof(recvBuffer) - 1, 0);
+		if (bytesReceived <= 0) {
+			std::cout << "Server disconnected." << std::endl;
+			break;
+		}
+		recvBuffer[bytesReceived] = '\0';
+
+		std::string recvMsg(recvBuffer);
+		std::cout << "서버 응답: " << recvMsg << std::endl;
+	}
 
 	// 4. 정리
 	closesocket(clientSocket);

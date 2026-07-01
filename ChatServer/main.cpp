@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <string>
 #include <winsock2.h>
 
 #pragma comment(lib, "ws2_32.lib")
@@ -61,6 +62,23 @@ int main()
 	}
 
 	std::cout << "Client connected!" << std::endl;
+
+	char buffer[512];
+	while (true) {
+		// 1. 클라이언트가 보낸 메시지 받기 (듣기)
+		int bytesReceived = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
+		if (bytesReceived <= 0) {
+			std::cout << "Client disconnected." << std::endl;
+			break;
+		}
+		buffer[bytesReceived] = '\0';
+
+		std::string recvMsg(buffer);
+		std::cout << "Received: " << recvMsg << std::endl;
+
+		// 2. 받은 걸 그대로 돌려보내기 (말하기)
+		send(clientSocket, buffer, static_cast<int>(recvMsg.size()), 0);
+	}
 
 	// 6. 정리
 	closesocket(clientSocket);
